@@ -26,7 +26,7 @@ public class Adventurer {
     @Column(nullable = false)
     private Integer gold = 0;
 
-    // JPA impose un constructeur sans argument
+    // JPA requires a no-arg constructor
     public Adventurer() {
     }
 
@@ -38,7 +38,7 @@ public class Adventurer {
         this.gold = 0;
     }
 
-    // --- Getters / Setters (pas de Lombok, ecrits a la main) ---
+    // --- Getters / Setters (no Lombok, written by hand) ---
 
     public Long getId() {
         return id;
