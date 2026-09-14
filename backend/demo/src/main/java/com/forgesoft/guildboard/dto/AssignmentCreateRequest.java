@@ -1,4 +1,6 @@
 package com.forgesoft.guildboard.dto;
 
-public record AssignmentCreateRequest(Long adventurerId) {
+import jakarta.validation.constraints.NotNull;
+
+public record AssignmentCreateRequest(@NotNull Long adventurerId) {
 }
