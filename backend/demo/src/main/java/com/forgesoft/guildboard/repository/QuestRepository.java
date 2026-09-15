@@ -14,4 +14,6 @@ public interface QuestRepository extends JpaRepository<Quest, Long> {
     List<Quest> findByDifficulty(Difficulty difficulty);
 
     List<Quest> findByStatusAndDifficulty(QuestStatus status, Difficulty difficulty);
+
+    boolean existsByTitle(String title);
 }
