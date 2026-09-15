@@ -1,6 +1,6 @@
 package com.forgesoft.guildboard.exception;
 
-public class BusinessRuleException extends RuntineException {
+public class BusinessRuleException extends RuntimeException {
 
     private final String code;
 
