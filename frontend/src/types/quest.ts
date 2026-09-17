@@ -1,4 +1,3 @@
-export type QuestClass = "id"|"title"|"description"|"difficulty"|"requiredLevel"|"goldReward"| "xpReward"| "status";
 export type DifficultyClass = "EASY"|"MEDIUM"|"HARD"|"EPIC";
 export type StatusClass ="AVAILABLE"|"ON_GOING"|"COMPLETED";
 export interface Quest {
