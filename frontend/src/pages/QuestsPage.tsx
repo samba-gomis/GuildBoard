@@ -18,41 +18,63 @@ export function QuestsPage() {
     const [difficulty, setDifficulty] = useState<DifficultyClass | "">("");
     const [showForm, setShowForm] = useState(false);
     const [selectedQuestId, setSelectedQuestId] = useState<number | null>(null);
-
-    function loadQuests() {
-        setLoading(true);
-        setError(null);
-        getQuests(status || undefined, difficulty || undefined)
-            .then(setQuests)
-            .catch((err: ApiError) => setError(err.message ?? "Impossible de charger les quêtes."))
-            .finally(() => setLoading(false));
-    }
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
-        loadQuests();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, difficulty]);
+        let cancelled = false;
+        getQuests(status || undefined, difficulty || undefined)
+            .then((data) => {
+                if (cancelled) return;
+                setQuests(data);
+                setError(null);
+            })
+            .catch((err: ApiError) => {
+                if (cancelled) return;
+                setError(err.message ?? "Impossible de charger les quêtes.");
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [status, difficulty, reloadKey]);
 
     useEffect(() => {
         getAdventurers()
             .then(setAdventurers)
             .catch(() => setAdventurers([]));
-    }, []);
+    }, [reloadKey]);
+
+    function reload() {
+        setLoading(true);
+        setReloadKey((current) => current + 1);
+    }
+
+    function handleStatusChange(newStatus: StatusClass | "") {
+        setLoading(true);
+        setStatus(newStatus);
+    }
+
+    function handleDifficultyChange(newDifficulty: DifficultyClass | "") {
+        setLoading(true);
+        setDifficulty(newDifficulty);
+    }
 
     async function handleCreate(data: QuestCreateRequest) {
         await createQuest(data);
         setShowForm(false);
-        loadQuests();
+        reload();
     }
 
     async function handleAssign(questId: number, adventurerId: number) {
         await assignQuest(questId, { adventurerId });
-        loadQuests();
+        reload();
     }
 
     async function handleComplete(questId: number) {
         await completeQuest(questId);
-        loadQuests();
+        reload();
     }
 
     const selectedQuest = quests.find((quest) => quest.id === selectedQuestId) ?? null;
@@ -63,8 +85,8 @@ export function QuestsPage() {
             <QuestFilters
                 status={status}
                 difficulty={difficulty}
-                onStatusChange={setStatus}
-                onDifficultyChange={setDifficulty}
+                onStatusChange={handleStatusChange}
+                onDifficultyChange={handleDifficultyChange}
             />
 
             <button type="button" onClick={() => setShowForm((current) => !current)}>
