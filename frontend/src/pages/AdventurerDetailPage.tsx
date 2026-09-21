@@ -18,28 +18,38 @@ export function AdventurerDetailPage({ adventurerId, onBack }: AdventurerDetailP
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editing, setEditing] = useState(false);
-
-    function load() {
-        setLoading(true);
-        setError(null);
-        Promise.all([getAdventurer(adventurerId), getAdventurerHistory(adventurerId)])
-            .then(([adventurerData, historyData]) => {
-                setAdventurer(adventurerData);
-                setHistory(historyData);
-            })
-            .catch((err: ApiError) => setError(err.message ?? "Impossible de charger cet aventurier."))
-            .finally(() => setLoading(false));
-    }
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
-        load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [adventurerId]);
+        let cancelled = false;
+        Promise.all([getAdventurer(adventurerId), getAdventurerHistory(adventurerId)])
+            .then(([adventurerData, historyData]) => {
+                if (cancelled) return;
+                setAdventurer(adventurerData);
+                setHistory(historyData);
+                setError(null);
+            })
+            .catch((err: ApiError) => {
+                if (cancelled) return;
+                setError(err.message ?? "Impossible de charger cet aventurier.");
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [adventurerId, reloadKey]);
+
+    function reload() {
+        setLoading(true);
+        setReloadKey((current) => current + 1);
+    }
 
     async function handleUpdate(data: AdventurerCreateRequest) {
         await updateAdventurer(adventurerId, data);
         setEditing(false);
-        load();
+        reload();
     }
 
     return (
