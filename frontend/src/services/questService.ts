@@ -26,6 +26,10 @@ export function deleteQuest(id: number): Promise<void> {
     return apiDelete(`/quests/${id}`);
 }
 
+export function getQuestAssignments(id: number): Promise<Assignment[]> {
+    return apiGet<Assignment[]>(`/quests/${id}/assignments`);
+}
+
 export function assignQuest(id: number, data: AssignmentCreateRequest): Promise<Assignment> {
     return apiPost<Assignment>(`/quests/${id}/assignment`, data);
 }

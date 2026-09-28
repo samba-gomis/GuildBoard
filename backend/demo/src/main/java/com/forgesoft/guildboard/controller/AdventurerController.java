@@ -22,8 +22,8 @@ public class AdventurerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AdventurerResponse>> findAll() {
-        return ResponseEntity.ok(adventurerService.findAll());
+    public ResponseEntity<List<AdventurerResponse>> findAll(@RequestParam(required = false) String search) {
+        return ResponseEntity.ok(adventurerService.findAll(search));
     }
 
     @GetMapping("/{id}")
@@ -43,7 +43,7 @@ public class AdventurerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        adventurerService.delete(id);
+        adventurerService.ban(id);
         return ResponseEntity.noContent().build();
     }
 

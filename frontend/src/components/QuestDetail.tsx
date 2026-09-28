@@ -1,21 +1,39 @@
 import { useState } from "react";
 import type { Quest } from "../types/quest";
 import type { Adventurer } from "../types/adventurer";
+import type { Assignment } from "../types/assignment";
 import type { ApiError } from "../types/apiError";
-import { DIFFICULTY_LABELS, STATUS_LABELS, difficultyBanner } from "../utils/display";
+import { DIFFICULTY_LABELS, STATUS_LABELS, difficultyBanner, formatDate } from "../utils/display";
 import { QuestActions } from "./QuestActions";
 import { Rewards } from "./Rewards";
 
 interface QuestDetailProps {
     quest: Quest;
     adventurers: Adventurer[];
+    assignments: Assignment[];
+    assignmentsError: string | null;
     onAssign: (questId: number, adventurerId: number) => Promise<void>;
     onComplete: (questId: number) => Promise<void>;
     onEdit: (quest: Quest) => void;
     onDelete: (questId: number) => Promise<void>;
 }
 
-export function QuestDetail({ quest, adventurers, onAssign, onComplete, onEdit, onDelete }: QuestDetailProps) {
+export function QuestDetail({
+    quest,
+    adventurers,
+    assignments,
+    assignmentsError,
+    onAssign,
+    onComplete,
+    onEdit,
+    onDelete,
+}: QuestDetailProps) {
+    const holder =
+        quest.status === "AVAILABLE"
+            ? null
+            : (assignments.find((assignment) => assignment.completedAt === null) ??
+              assignments.find((assignment) => assignment.completedAt !== null) ??
+              null);
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -58,7 +76,20 @@ export function QuestDetail({ quest, adventurers, onAssign, onComplete, onEdit, 
                         <dt>Niveau requis</dt>
                         <dd>{quest.requiredLevel}</dd>
                     </div>
+                    {holder && (
+                        <div>
+                            <dt>{holder.completedAt ? "Terminée par" : "Assignée à"}</dt>
+                            <dd className="quest-detail-holder">
+                                {holder.adventurerName}
+                                {holder.adventurerBanned && <span className="badge badge--banned">Banni</span>}
+                                {holder.completedAt && (
+                                    <span className="quest-detail-date">le {formatDate(holder.completedAt)}</span>
+                                )}
+                            </dd>
+                        </div>
+                    )}
                 </dl>
+                {assignmentsError && <p role="alert">{assignmentsError}</p>}
 
                 <div className="quest-detail-section">
                     <h3>Récompenses</h3>

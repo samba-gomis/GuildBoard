@@ -35,6 +35,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
+    @ExceptionHandler(ResourceGoneException.class)
+    public ResponseEntity<ApiErrorResponse> handleGone(ResourceGoneException ex) {
+        ApiErrorResponse body = new ApiErrorResponse(
+                HttpStatus.GONE.value(),
+                ex.getCode(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.GONE).body(body);
+    }
+
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ApiErrorResponse> handleBusinessRule(BusinessRuleException ex) {
         ApiErrorResponse body = new ApiErrorResponse(

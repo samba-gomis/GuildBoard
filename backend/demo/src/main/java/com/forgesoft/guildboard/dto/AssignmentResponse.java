@@ -6,6 +6,7 @@ public record AssignmentResponse(
         Long id,
         Long adventurerId,
         String adventurerName,
+        boolean adventurerBanned,
         Long questId,
         String questTitle,
         LocalDateTime assignedAt,

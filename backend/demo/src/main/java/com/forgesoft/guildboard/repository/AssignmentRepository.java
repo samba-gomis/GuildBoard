@@ -15,4 +15,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     Optional<Assignment> findByAdventurerAndCompletedAtIsNull(Adventurer adventurer);
 
     Optional<Assignment> findByQuestAndCompletedAtIsNull(Quest quest);
+
+    List<Assignment> findByQuest(Quest quest);
 }
