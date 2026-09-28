@@ -51,7 +51,8 @@ GuildBoard/
 │       ├── entity/          Entités JPA (jamais exposées hors de l'application)
 │       ├── dto/             Records Java servant de contrat d'entrée et de sortie
 │       ├── exception/       Exceptions métier et gestion centralisée des erreurs
-│       └── config/          Configuration CORS
+│       ├── config/          Configuration CORS
+│       └── seed/            Jeu de données de démonstration
 ├── frontend/                Client React + TypeScript
 │   └── src/
 │       ├── pages/           Écrans
@@ -98,6 +99,14 @@ export DB_PASSWORD="votre_mot_de_passe"
 ```
 
 Les tables sont créées automatiquement au premier démarrage (`spring.jpa.hibernate.ddl-auto=update`).
+
+**Données de démonstration** : au démarrage, si la base est **vide**, le back la remplit avec 12 aventuriers (les 4 classes, niveaux 1 à 10, dont 2 bannis) et 15 quêtes (les 4 difficultés, disponibles, en cours et terminées). Le chargement passe par les services, donc les règles métier s'appliquent. Une base qui contient déjà des données n'est jamais modifiée. Pour désactiver ce chargement, mettre `guildboard.demo-data.enabled=false` dans `application.properties`.
+
+Pour repartir d'une base vide et recharger la démo, **en supprimant toutes les données**, arrêter le back puis exécuter :
+
+```sql
+TRUNCATE TABLE assignment, quest, adventurer RESTART IDENTITY;
+```
 
 ### Étape 2 : le back
 
@@ -230,7 +239,6 @@ Le modèle comporte trois entités : `Adventurer`, `Quest` et `Assignment`, cett
 
 ### Limites connues
 
-- Pas de jeu de données de démonstration fourni : les aventuriers et les quêtes se créent depuis l'interface ou Swagger.
 - L'interface ne propose la modification et la suppression d'une quête que lorsqu'elle est **disponible**. Le back refuse déjà la modification d'une quête en cours ou terminée ; pour la suppression, une quête terminée reste référencée par son assignation (clé étrangère), et sa suppression échouerait avec une erreur générique 500.
 - Un aventurier banni n'est pas réintégrable depuis l'interface, et son nom ne peut pas être repris par un nouvel aventurier.
 
