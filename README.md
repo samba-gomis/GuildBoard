@@ -57,7 +57,9 @@ GuildBoard/
 │       ├── pages/           Écrans
 │       ├── components/      Composants réutilisables
 │       ├── services/        Seul endroit où sont faits les appels HTTP
-│       └── types/           Types TypeScript reflétant les DTO de l'API
+│       ├── types/           Types TypeScript reflétant les DTO de l'API
+│       └── utils/           Libellés français et chemins des images
+├── frontend/public/images/  Logo, bandeaux de difficulté et portraits de classe
 ├── docs/                    Modèles de données Merise (MCD, MLD, MPD)
 ├── .github/workflows/       Intégration continue du back
 ├── LICENSE
@@ -225,9 +227,8 @@ Le modèle comporte trois entités : `Adventurer`, `Quest` et `Assignment`, cett
 ### Limites connues
 
 - Pas de jeu de données de démonstration fourni : les aventuriers et les quêtes se créent depuis l'interface ou Swagger.
-- L'interface ne propose pas encore la modification ni la suppression d'une quête, ni la suppression d'un aventurier (les routes et les services du front existent).
-- Supprimer un aventurier qui a un historique d'assignations n'est pas géré explicitement : la contrainte de clé étrangère peut faire échouer la suppression avec une erreur générique.
-- L'interface est volontairement sobre, le style n'étant pas le cœur de l'évaluation.
+- L'interface ne propose la modification et la suppression d'une quête que lorsqu'elle est **disponible**. Le back refuse déjà la modification d'une quête en cours ou terminée ; pour la suppression, une quête terminée reste référencée par son assignation (clé étrangère), et sa suppression échouerait avec une erreur générique 500.
+- L'interface ne propose pas la suppression d'un aventurier (la route et le service du front existent). Pour la même raison de clé étrangère, supprimer un aventurier qui a un historique échouerait avec une erreur générique.
 
 ---
 

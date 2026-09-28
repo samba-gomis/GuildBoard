@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { assignQuest, completeQuest, createQuest, getQuests } from "../services/questService";
+import {
+    assignQuest,
+    completeQuest,
+    createQuest,
+    deleteQuest,
+    getQuests,
+    updateQuest,
+} from "../services/questService";
 import { getAdventurers } from "../services/adventurerService";
 import type { DifficultyClass, Quest, QuestCreateRequest, StatusClass } from "../types/quest";
 import type { Adventurer } from "../types/adventurer";
@@ -7,17 +14,21 @@ import type { ApiError } from "../types/apiError";
 import { QuestCard } from "../components/QuestCard";
 import { QuestFilters } from "../components/QuestFilters";
 import { QuestForm } from "../components/QuestForm";
-import { QuestActions } from "../components/QuestActions";
+import { QuestDetail } from "../components/QuestDetail";
+import { Modal } from "../components/Modal";
+
+type ModalState = { mode: "create" } | { mode: "edit"; quest: Quest } | null;
 
 export function QuestsPage() {
     const [quests, setQuests] = useState<Quest[]>([]);
     const [adventurers, setAdventurers] = useState<Adventurer[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [adventurersError, setAdventurersError] = useState<string | null>(null);
     const [status, setStatus] = useState<StatusClass | "">("");
     const [difficulty, setDifficulty] = useState<DifficultyClass | "">("");
-    const [showForm, setShowForm] = useState(false);
     const [selectedQuestId, setSelectedQuestId] = useState<number | null>(null);
+    const [modal, setModal] = useState<ModalState>(null);
     const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
@@ -41,9 +52,20 @@ export function QuestsPage() {
     }, [status, difficulty, reloadKey]);
 
     useEffect(() => {
+        let cancelled = false;
         getAdventurers()
-            .then(setAdventurers)
-            .catch(() => setAdventurers([]));
+            .then((data) => {
+                if (cancelled) return;
+                setAdventurers(data);
+                setAdventurersError(null);
+            })
+            .catch((err: ApiError) => {
+                if (cancelled) return;
+                setAdventurersError(err.message ?? "Impossible de charger les aventuriers.");
+            });
+        return () => {
+            cancelled = true;
+        };
     }, [reloadKey]);
 
     function reload() {
@@ -62,8 +84,21 @@ export function QuestsPage() {
     }
 
     async function handleCreate(data: QuestCreateRequest) {
-        await createQuest(data);
-        setShowForm(false);
+        const created = await createQuest(data);
+        setModal(null);
+        setSelectedQuestId(created.id);
+        reload();
+    }
+
+    async function handleUpdate(questId: number, data: QuestCreateRequest) {
+        await updateQuest(questId, data);
+        setModal(null);
+        reload();
+    }
+
+    async function handleDelete(questId: number) {
+        await deleteQuest(questId);
+        setSelectedQuestId(null);
         reload();
     }
 
@@ -77,44 +112,78 @@ export function QuestsPage() {
         reload();
     }
 
-    const selectedQuest = quests.find((quest) => quest.id === selectedQuestId) ?? null;
+    const selectedQuest = quests.find((quest) => quest.id === selectedQuestId) ?? quests[0] ?? null;
 
     return (
-        <section>
-            <QuestFilters
-                status={status}
-                difficulty={difficulty}
-                onStatusChange={handleStatusChange}
-                onDifficultyChange={handleDifficultyChange}
-            />
+        <section className="quests-page">
+            <div className="quests-toolbar">
+                <QuestFilters
+                    status={status}
+                    difficulty={difficulty}
+                    onStatusChange={handleStatusChange}
+                    onDifficultyChange={handleDifficultyChange}
+                />
+                <button type="button" className="btn-primary" onClick={() => setModal({ mode: "create" })}>
+                    + Nouvelle quête
+                </button>
+            </div>
 
-            <button type="button" onClick={() => setShowForm((current) => !current)}>
-                {showForm ? "Annuler" : "Nouvelle quête"}
-            </button>
-            {showForm && <QuestForm onSubmit={handleCreate} />}
+            {adventurersError && <p role="alert">{adventurersError}</p>}
 
-            {loading && <p>Chargement...</p>}
-            {error && <p role="alert">{error}</p>}
-            {!loading && !error && quests.length === 0 && <p>Aucune quête ne correspond à ces filtres.</p>}
-            {!loading && !error && quests.length > 0 && (
-                <ul>
-                    {quests.map((quest) => (
-                        <QuestCard key={quest.id} quest={quest} onSelect={setSelectedQuestId} />
-                    ))}
-                </ul>
-            )}
-
-            {selectedQuest && (
+            <div className={`quests-layout${selectedQuest ? " quests-layout--with-detail" : ""}`}>
                 <div>
-                    <h2>{selectedQuest.title}</h2>
-                    <p>{selectedQuest.description}</p>
-                    <QuestActions
+                    {loading && quests.length === 0 && <p className="state-message">Chargement des quêtes...</p>}
+                    {error && <p role="alert">{error}</p>}
+                    {!loading && !error && quests.length === 0 && (
+                        <p className="state-message">Aucune quête ne correspond à ces filtres.</p>
+                    )}
+                    {quests.length > 0 && (
+                        <ul className="quest-list" aria-busy={loading}>
+                            {quests.map((quest) => (
+                                <QuestCard
+                                    key={quest.id}
+                                    quest={quest}
+                                    selected={quest.id === selectedQuest?.id}
+                                    onSelect={setSelectedQuestId}
+                                />
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                {selectedQuest && (
+                    <QuestDetail
+                        key={selectedQuest.id}
                         quest={selectedQuest}
                         adventurers={adventurers}
                         onAssign={handleAssign}
                         onComplete={handleComplete}
+                        onEdit={(quest) => setModal({ mode: "edit", quest })}
+                        onDelete={handleDelete}
                     />
-                </div>
+                )}
+            </div>
+
+            {modal?.mode === "create" && (
+                <Modal title="Nouvelle quête" onClose={() => setModal(null)}>
+                    <QuestForm submitLabel="Créer la quête" onSubmit={handleCreate} />
+                </Modal>
+            )}
+            {modal?.mode === "edit" && (
+                <Modal title="Modifier la quête" onClose={() => setModal(null)}>
+                    <QuestForm
+                        initialValues={{
+                            title: modal.quest.title,
+                            description: modal.quest.description,
+                            difficulty: modal.quest.difficulty,
+                            requiredLevel: modal.quest.requiredLevel,
+                            goldReward: modal.quest.goldReward,
+                            xpReward: modal.quest.xpReward,
+                        }}
+                        submitLabel="Enregistrer les modifications"
+                        onSubmit={(data) => handleUpdate(modal.quest.id, data)}
+                    />
+                </Modal>
             )}
         </section>
     );

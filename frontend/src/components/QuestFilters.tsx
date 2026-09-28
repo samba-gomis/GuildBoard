@@ -1,4 +1,5 @@
 import type { DifficultyClass, StatusClass } from "../types/quest";
+import { DIFFICULTIES, DIFFICULTY_LABELS } from "../utils/display";
 
 interface QuestFiltersProps {
     status: StatusClass | "";
@@ -7,28 +8,30 @@ interface QuestFiltersProps {
     onDifficultyChange: (difficulty: DifficultyClass | "") => void;
 }
 
-const STATUSES: StatusClass[] = ["AVAILABLE", "ON_GOING", "COMPLETED"];
-const DIFFICULTIES: DifficultyClass[] = ["EASY", "MEDIUM", "HARD", "EPIC"];
+const STATUS_TABS: { value: StatusClass | ""; label: string }[] = [
+    { value: "", label: "Toutes" },
+    { value: "ON_GOING", label: "En cours" },
+    { value: "AVAILABLE", label: "Disponibles" },
+    { value: "COMPLETED", label: "Terminées" },
+];
 
 export function QuestFilters({ status, difficulty, onStatusChange, onDifficultyChange }: QuestFiltersProps) {
     return (
         <div className="quest-filters">
-            <div>
-                <label htmlFor="filter-status">Statut</label>
-                <select
-                    id="filter-status"
-                    value={status}
-                    onChange={(e) => onStatusChange(e.target.value as StatusClass | "")}
-                >
-                    <option value="">Tous</option>
-                    {STATUSES.map((statusOption) => (
-                        <option key={statusOption} value={statusOption}>
-                            {statusOption}
-                        </option>
-                    ))}
-                </select>
+            <div className="status-tabs" role="group" aria-label="Filtrer par statut">
+                {STATUS_TABS.map((tab) => (
+                    <button
+                        key={tab.label}
+                        type="button"
+                        className="status-tab"
+                        aria-pressed={status === tab.value}
+                        onClick={() => onStatusChange(tab.value)}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
-            <div>
+            <div className="difficulty-filter">
                 <label htmlFor="filter-difficulty">Difficulté</label>
                 <select
                     id="filter-difficulty"
@@ -38,7 +41,7 @@ export function QuestFilters({ status, difficulty, onStatusChange, onDifficultyC
                     <option value="">Toutes</option>
                     {DIFFICULTIES.map((difficultyOption) => (
                         <option key={difficultyOption} value={difficultyOption}>
-                            {difficultyOption}
+                            {DIFFICULTY_LABELS[difficultyOption]}
                         </option>
                     ))}
                 </select>
