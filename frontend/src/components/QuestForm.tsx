@@ -2,15 +2,15 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { DifficultyClass, QuestCreateRequest } from "../types/quest";
 import type { ApiError } from "../types/apiError";
+import { DIFFICULTIES, DIFFICULTY_LABELS } from "../utils/display";
 
 interface QuestFormProps {
     initialValues?: QuestCreateRequest;
+    submitLabel?: string;
     onSubmit: (data: QuestCreateRequest) => Promise<void>;
 }
 
-const DIFFICULTIES: DifficultyClass[] = ["EASY", "MEDIUM", "HARD", "EPIC"];
-
-export function QuestForm({ initialValues, onSubmit }: QuestFormProps) {
+export function QuestForm({ initialValues, submitLabel = "Enregistrer", onSubmit }: QuestFormProps) {
     const [title, setTitle] = useState(initialValues?.title ?? "");
     const [description, setDescription] = useState(initialValues?.description ?? "");
     const [difficulty, setDifficulty] = useState<DifficultyClass>(initialValues?.difficulty ?? "EASY");
@@ -34,7 +34,7 @@ export function QuestForm({ initialValues, onSubmit }: QuestFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form className="quest-form" onSubmit={handleSubmit}>
             <div>
                 <label htmlFor="quest-title">Titre</label>
                 <input
@@ -68,7 +68,7 @@ export function QuestForm({ initialValues, onSubmit }: QuestFormProps) {
                 >
                     {DIFFICULTIES.map((difficultyOption) => (
                         <option key={difficultyOption} value={difficultyOption}>
-                            {difficultyOption}
+                            {DIFFICULTY_LABELS[difficultyOption]}
                         </option>
                     ))}
                 </select>
@@ -108,7 +108,7 @@ export function QuestForm({ initialValues, onSubmit }: QuestFormProps) {
             </div>
             {error && <p role="alert">{error}</p>}
             <button type="submit" disabled={submitting}>
-                {submitting ? "Envoi..." : "Enregistrer"}
+                {submitting ? "Envoi..." : submitLabel}
             </button>
         </form>
     );

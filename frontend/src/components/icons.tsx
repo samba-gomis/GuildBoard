@@ -25,6 +25,15 @@ export function QuestIcon() {
     );
 }
 
+export function CoinIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" fill="#f4b63c" stroke="#b9801a" strokeWidth={1.5} />
+            <circle cx="12" cy="12" r="6" fill="none" stroke="#fff1c9" strokeWidth={1.5} opacity={0.7} />
+        </svg>
+    );
+}
+
 export function MembersIcon() {
     return (
         <BaseIcon>

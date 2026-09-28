@@ -57,13 +57,18 @@ export function QuestActions({ quest, adventurers, onAssign, onComplete }: Quest
                             </option>
                         ))}
                     </select>
-                    <button type="button" onClick={handleAssign} disabled={submitting || selectedAdventurerId === ""}>
+                    <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={handleAssign}
+                        disabled={submitting || selectedAdventurerId === ""}
+                    >
                         Assigner
                     </button>
                 </div>
             )}
             {quest.status === "ON_GOING" && (
-                <button type="button" onClick={handleComplete} disabled={submitting}>
+                <button type="button" className="btn-primary" onClick={handleComplete} disabled={submitting}>
                     Marquer comme terminée
                 </button>
             )}
