@@ -1,4 +1,5 @@
 import type { Assignment } from "../types/assignment";
+import { formatDate } from "../utils/display";
 
 interface AssignmentHistoryProps {
     assignments: Assignment[];
@@ -6,7 +7,7 @@ interface AssignmentHistoryProps {
 
 export function AssignmentHistory({ assignments }: AssignmentHistoryProps) {
     if (assignments.length === 0) {
-        return <p>Aucune quête dans l'historique.</p>;
+        return <p className="state-message">Aucune quête dans l'historique.</p>;
     }
 
     return (
@@ -14,10 +15,9 @@ export function AssignmentHistory({ assignments }: AssignmentHistoryProps) {
             {assignments.map((assignment) => (
                 <li key={assignment.id}>
                     <strong>{assignment.questTitle}</strong>
-                    {" — "}
-                    {assignment.completedAt
-                        ? `Terminée le ${new Date(assignment.completedAt).toLocaleDateString("fr-FR")}`
-                        : "En cours"}
+                    <span className={`badge badge--status ${assignment.completedAt ? "badge--completed" : "badge--on_going"}`}>
+                        {assignment.completedAt ? `Terminée le ${formatDate(assignment.completedAt)}` : "En cours"}
+                    </span>
                 </li>
             ))}
         </ul>

@@ -8,6 +8,7 @@ public record AdventurerResponse(
         CharacterClass characterClass,
         Integer level,
         Integer xp,
-        Integer gold
+        Integer gold,
+        boolean banned
 ) {
 }

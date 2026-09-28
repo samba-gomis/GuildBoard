@@ -2,15 +2,15 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { AdventurerCreateRequest, CharacterClass } from "../types/adventurer";
 import type { ApiError } from "../types/apiError";
+import { CHARACTER_CLASSES, CLASS_LABELS } from "../utils/display";
 
 interface AdventurerFormProps {
     initialValues?: AdventurerCreateRequest;
+    submitLabel?: string;
     onSubmit: (data: AdventurerCreateRequest) => Promise<void>;
 }
 
-const CHARACTER_CLASSES: CharacterClass[] = ["WARRIOR", "MAGE", "RANGER", "CLERIC"];
-
-export function AdventurerForm({ initialValues, onSubmit }: AdventurerFormProps) {
+export function AdventurerForm({ initialValues, submitLabel = "Enregistrer", onSubmit }: AdventurerFormProps) {
     const [name, setName] = useState(initialValues?.name ?? "");
     const [characterClass, setCharacterClass] = useState<CharacterClass>(initialValues?.characterClass ?? "WARRIOR");
     const [submitting, setSubmitting] = useState(false);
@@ -53,14 +53,14 @@ export function AdventurerForm({ initialValues, onSubmit }: AdventurerFormProps)
                 >
                     {CHARACTER_CLASSES.map((characterClassOption) => (
                         <option key={characterClassOption} value={characterClassOption}>
-                            {characterClassOption}
+                            {CLASS_LABELS[characterClassOption]}
                         </option>
                     ))}
                 </select>
             </div>
             {error && <p role="alert">{error}</p>}
             <button type="submit" disabled={submitting}>
-                {submitting ? "Envoi..." : "Enregistrer"}
+                {submitting ? "Envoi..." : submitLabel}
             </button>
         </form>
     );

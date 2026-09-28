@@ -2,8 +2,9 @@ import { apiDelete, apiGet, apiPost, apiPut } from "./httpClient";
 import type { Adventurer, AdventurerCreateRequest } from "../types/adventurer";
 import type { Assignment } from "../types/assignment";
 
-export function getAdventurers(): Promise<Adventurer[]> {
-    return apiGet<Adventurer[]>("/adventurers");
+export function getAdventurers(search?: string): Promise<Adventurer[]> {
+    const term = search?.trim();
+    return apiGet<Adventurer[]>(`/adventurers${term ? `?search=${encodeURIComponent(term)}` : ""}`);
 }
 
 export function getAdventurer(id: number): Promise<Adventurer> {

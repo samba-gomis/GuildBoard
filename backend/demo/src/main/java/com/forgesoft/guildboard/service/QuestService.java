@@ -10,6 +10,7 @@ import com.forgesoft.guildboard.entity.Difficulty;
 import com.forgesoft.guildboard.entity.Quest;
 import com.forgesoft.guildboard.entity.QuestStatus;
 import com.forgesoft.guildboard.exception.BusinessRuleException;
+import com.forgesoft.guildboard.exception.ResourceGoneException;
 import com.forgesoft.guildboard.exception.ResourceNotFoundException;
 import com.forgesoft.guildboard.repository.AdventurerRepository;
 import com.forgesoft.guildboard.repository.AssignmentRepository;
@@ -91,6 +92,9 @@ public class QuestService {
         Adventurer adventurer = adventurerRepository.findById(request.adventurerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Aventurier introuvable (id=" + request.adventurerId() + ")."));
 
+        if (adventurer.isBanned()) {
+            throw new ResourceGoneException("ADVENTURER_BANNED", adventurer.getName() + " a été banni de la guilde.");
+        }
         if (quest.getStatus() != QuestStatus.AVAILABLE) {
             throw new BusinessRuleException("QUEST_NOT_AVAILABLE", "Cette quête n'est plus disponible.");
         }
@@ -134,6 +138,13 @@ public class QuestService {
         return toResponse(assignmentRepository.save(assignment));
     }
 
+    public List<AssignmentResponse> findAssignments(Long questId) {
+        Quest quest = getOrThrow(questId);
+        return assignmentRepository.findByQuest(quest).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private Quest getOrThrow(Long id) {
         return questRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quête introuvable (id=" + id + ")."));
@@ -157,6 +168,7 @@ public class QuestService {
                 assignment.getId(),
                 assignment.getAdventurer().getId(),
                 assignment.getAdventurer().getName(),
+                assignment.getAdventurer().isBanned(),
                 assignment.getQuest().getId(),
                 assignment.getQuest().getTitle(),
                 assignment.getAssignedAt(),

@@ -4,12 +4,14 @@ import {
     completeQuest,
     createQuest,
     deleteQuest,
+    getQuestAssignments,
     getQuests,
     updateQuest,
 } from "../services/questService";
 import { getAdventurers } from "../services/adventurerService";
 import type { DifficultyClass, Quest, QuestCreateRequest, StatusClass } from "../types/quest";
 import type { Adventurer } from "../types/adventurer";
+import type { Assignment } from "../types/assignment";
 import type { ApiError } from "../types/apiError";
 import { QuestCard } from "../components/QuestCard";
 import { QuestFilters } from "../components/QuestFilters";
@@ -18,6 +20,12 @@ import { QuestDetail } from "../components/QuestDetail";
 import { Modal } from "../components/Modal";
 
 type ModalState = { mode: "create" } | { mode: "edit"; quest: Quest } | null;
+
+interface QuestAssignments {
+    questId: number;
+    items: Assignment[];
+    error: string | null;
+}
 
 export function QuestsPage() {
     const [quests, setQuests] = useState<Quest[]>([]);
@@ -29,7 +37,11 @@ export function QuestsPage() {
     const [difficulty, setDifficulty] = useState<DifficultyClass | "">("");
     const [selectedQuestId, setSelectedQuestId] = useState<number | null>(null);
     const [modal, setModal] = useState<ModalState>(null);
+    const [questAssignments, setQuestAssignments] = useState<QuestAssignments | null>(null);
     const [reloadKey, setReloadKey] = useState(0);
+
+    const selectedQuest = quests.find((quest) => quest.id === selectedQuestId) ?? quests[0] ?? null;
+    const selectedQuestKey = selectedQuest?.id ?? null;
 
     useEffect(() => {
         let cancelled = false;
@@ -67,6 +79,26 @@ export function QuestsPage() {
             cancelled = true;
         };
     }, [reloadKey]);
+
+    useEffect(() => {
+        if (selectedQuestKey === null) return;
+        let cancelled = false;
+        getQuestAssignments(selectedQuestKey)
+            .then((items) => {
+                if (!cancelled) setQuestAssignments({ questId: selectedQuestKey, items, error: null });
+            })
+            .catch((err: ApiError) => {
+                if (cancelled) return;
+                setQuestAssignments({
+                    questId: selectedQuestKey,
+                    items: [],
+                    error: err.message ?? "Impossible de charger l'aventurier de cette quête.",
+                });
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedQuestKey, reloadKey]);
 
     function reload() {
         setLoading(true);
@@ -112,7 +144,7 @@ export function QuestsPage() {
         reload();
     }
 
-    const selectedQuest = quests.find((quest) => quest.id === selectedQuestId) ?? quests[0] ?? null;
+    const currentAssignments = questAssignments?.questId === selectedQuestKey ? questAssignments : null;
 
     return (
         <section className="quests-page">
@@ -156,6 +188,8 @@ export function QuestsPage() {
                         key={selectedQuest.id}
                         quest={selectedQuest}
                         adventurers={adventurers}
+                        assignments={currentAssignments?.items ?? []}
+                        assignmentsError={currentAssignments?.error ?? null}
                         onAssign={handleAssign}
                         onComplete={handleComplete}
                         onEdit={(quest) => setModal({ mode: "edit", quest })}

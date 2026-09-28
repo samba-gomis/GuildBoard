@@ -52,6 +52,11 @@ public class QuestController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}/assignments")
+    public ResponseEntity<List<AssignmentResponse>> findAssignments(@PathVariable Long id) {
+        return ResponseEntity.ok(questService.findAssignments(id));
+    }
+
     @PostMapping("/{id}/assignment")
     public ResponseEntity<AssignmentResponse> assign(@PathVariable Long id, @Valid @RequestBody AssignmentCreateRequest request) {
         return ResponseEntity.ok(questService.assign(id, request));

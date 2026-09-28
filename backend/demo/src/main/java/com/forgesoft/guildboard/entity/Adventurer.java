@@ -1,6 +1,7 @@
 package com.forgesoft.guildboard.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "adventurer")
@@ -25,6 +26,10 @@ public class Adventurer {
 
     @Column(nullable = false)
     private Integer gold = 0;
+
+    // Soft delete: stays null while active, so a banned adventurer keeps his name on completed quests
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
 
     // JPA requires a no-arg constructor
     public Adventurer() {
@@ -86,5 +91,17 @@ public class Adventurer {
 
     public void setGold(Integer gold) {
         this.gold = gold;
+    }
+
+    public LocalDateTime getBannedAt() {
+        return bannedAt;
+    }
+
+    public void setBannedAt(LocalDateTime bannedAt) {
+        this.bannedAt = bannedAt;
+    }
+
+    public boolean isBanned() {
+        return bannedAt != null;
     }
 }

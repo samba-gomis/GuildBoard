@@ -642,8 +642,22 @@ form {
 
 .quest-detail-facts {
   display: flex;
-  gap: 1.75rem;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.75rem;
   margin: 0;
+}
+
+.quest-detail-holder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.quest-detail-date {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .quest-detail-facts dt {
@@ -717,6 +731,11 @@ form {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
+/* Wins over the generic ".content section > * + *" spacing, which would break the vertical centering */
+.content .modal {
+  margin: auto;
+}
+
 .modal::backdrop {
   background: rgba(3, 8, 20, 0.7);
 }
@@ -755,22 +774,216 @@ form {
   border: 0;
 }
 
-/* ---------- Members (restyled in the next step) ---------- */
+/* ---------- Members ---------- */
 
-.adventurer-card + .adventurer-card {
-  margin-top: 0.6rem;
+.class-theme--warrior {
+  --class-color: #e0524b;
 }
 
-.adventurer-card > button {
+.class-theme--mage {
+  --class-color: #5b7dff;
+}
+
+.class-theme--ranger {
+  --class-color: #45c276;
+}
+
+.class-theme--cleric {
+  --class-color: var(--gold);
+}
+
+.badge--banned {
+  color: #ffb4ae;
+  background: var(--danger-soft);
+}
+
+.members-toolbar {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.members-search {
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+
+.members-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.adventurer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.8rem;
+}
+
+.adventurer-card-button {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
   width: 100%;
+  height: 100%;
   padding: 0.9rem 1rem;
   text-align: left;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+}
+
+.adventurer-card-button:hover:not(:disabled) {
+  background: var(--panel-hover);
+  border-color: var(--class-color, var(--primary));
+}
+
+.adventurer-portrait {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px var(--class-color, var(--border-strong));
+}
+
+.adventurer-card-body {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.adventurer-card-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.adventurer-card-class {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--class-color, var(--text-muted));
+}
+
+.adventurer-card .xp-bar-label {
+  font-size: 0.75rem;
+}
+
+.adventurer-card-gold {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.adventurer-card-gold svg {
+  width: 18px;
+  height: 18px;
+}
+
+.adventurer-card--banned .adventurer-card-button {
+  opacity: 0.65;
+}
+
+.adventurer-card--banned .adventurer-portrait {
+  filter: grayscale(1);
+  box-shadow: 0 0 0 2px var(--border-strong);
+}
+
+.adventurer-profile {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.adventurer-profile-portrait {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 0 0 3px var(--class-color), 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.adventurer-profile-info {
+  display: grid;
+  gap: 1rem;
+  max-width: 520px;
+}
+
+.adventurer-profile h2 {
+  font-size: 1.6rem;
+}
+
+.adventurer-profile-class {
+  font-weight: 600;
+  color: var(--class-color);
+}
+
+.adventurer-profile-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.adventurer-profile-gold svg {
+  width: 22px;
+  height: 22px;
+}
+
+.adventurer-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.delete-confirm {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  font-size: 0.9rem;
+  background: var(--danger-soft);
+  border: 1px solid rgba(239, 91, 82, 0.4);
+  border-radius: var(--radius-sm);
+}
+
+.adventurer-history h3 {
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.banned-notice {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 560px;
+  padding: 1.25rem;
+  background: var(--panel);
+  border: 1px solid rgba(239, 91, 82, 0.45);
+  border-left: 4px solid var(--danger);
+  border-radius: var(--radius);
+}
+
+.banned-notice-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffb4ae;
+}
+
+.banned-notice-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .xp-bar {
@@ -798,15 +1011,21 @@ form {
   transition: width 0.4s ease;
 }
 
+.assignment-history {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .assignment-history li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
   padding: 0.7rem 1rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-}
-
-.assignment-history li + li {
-  margin-top: 0.5rem;
 }
 
 /* ---------- Responsive ---------- */
@@ -875,5 +1094,14 @@ form {
 
   .quest-form {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .adventurer-profile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .adventurer-profile-portrait {
+    width: 120px;
+    height: 120px;
   }
 }

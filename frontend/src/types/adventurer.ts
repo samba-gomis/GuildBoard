@@ -7,6 +7,7 @@ export interface Adventurer {
     level: number;
     xp: number;
     gold: number;
+    banned: boolean;
 }
 
 export interface AdventurerCreateRequest {

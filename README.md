@@ -19,7 +19,7 @@ Une guilde reçoit des quêtes. Les aventuriers s'y assignent, les accomplissent
 
 ### Fonctionnalités
 
-- Gestion des **aventuriers** : création, consultation, modification, suppression, fiche détaillée avec jauge d'expérience et historique des quêtes.
+- Gestion des **aventuriers** : création, recherche par nom, consultation, modification, suppression (bannissement), fiche détaillée avec portrait de classe, jauge d'expérience et historique des quêtes.
 - Gestion des **quêtes** : création, consultation avec filtres par statut et par difficulté, modification, suppression.
 - **Assignation** d'un aventurier à une quête et **complétion** de la quête, avec application automatique des règles métier (niveau requis, une seule quête en cours, gain d'or et d'XP, montée de niveau).
 
@@ -142,11 +142,11 @@ Swagger UI permet d'essayer chaque route directement depuis le navigateur.
 
 | Méthode | Route | Description | Succès |
 |---|---|---|---|
-| GET | `/api/adventurers` | Liste des aventuriers | 200 |
+| GET | `/api/adventurers` | Liste des aventuriers actifs ; avec `?search=`, recherche par nom, bannis compris (champ `banned`) | 200 |
 | GET | `/api/adventurers/{id}` | Détail d'un aventurier | 200 |
 | POST | `/api/adventurers` | Création | 201 |
 | PUT | `/api/adventurers/{id}` | Modification | 200 |
-| DELETE | `/api/adventurers/{id}` | Suppression | 204 |
+| DELETE | `/api/adventurers/{id}` | Suppression douce : l'aventurier est banni (voir règles métier) | 204 |
 | GET | `/api/adventurers/{id}/history` | Assignations passées et en cours | 200 |
 | GET | `/api/quests` | Liste des quêtes, filtrable par `?status=` et `?difficulty=` | 200 |
 | GET | `/api/quests/{id}` | Détail d'une quête | 200 |
@@ -155,6 +155,7 @@ Swagger UI permet d'essayer chaque route directement depuis le navigateur.
 | DELETE | `/api/quests/{id}` | Suppression (interdite si `ON_GOING`) | 204 |
 | POST | `/api/quests/{id}/assignment` | Assigne un aventurier (`{"adventurerId": 1}`) | 200 |
 | POST | `/api/quests/{id}/completion` | Termine la quête et crédite l'aventurier | 200 |
+| GET | `/api/quests/{id}/assignments` | Assignations de la quête (qui la tient ou l'a terminée) | 200 |
 
 ### Règles métier
 
@@ -163,6 +164,7 @@ Elles vivent uniquement dans la couche service (`QuestService`).
 - **RG1, niveau requis** : un aventurier ne peut prendre une quête que si son niveau est supérieur ou égal au niveau requis.
 - **RG2, une quête à la fois** : un aventurier ne peut avoir qu'une seule quête `ON_GOING`, et une quête `ON_GOING` ou `COMPLETED` ne peut pas être assignée.
 - **RG3, complétion et montée de niveau** : terminer une quête crédite l'or et l'XP, passe la quête en `COMPLETED` et renseigne `completedAt`. Tant que `xp >= niveau x 100`, l'aventurier perd `niveau x 100` XP et gagne un niveau.
+- **Bannissement** (ajouté après la soutenance) : supprimer un aventurier ne l'efface pas, il est banni (`banned_at` renseigné). Si une quête était en cours, son assignation est supprimée et la quête repasse `AVAILABLE`, prête à être réassignée. Les quêtes terminées gardent son nom. Il disparaît ensuite de la liste, ne peut plus être assigné ni modifié, et le consulter renvoie `410 ADVENTURER_BANNED`. Son nom reste réservé. Ce traitement vit dans `AdventurerService` et s'exécute en une seule transaction.
 
 ### Contrat d'erreur
 
@@ -180,6 +182,7 @@ Toutes les erreurs ont le même format. Les **codes sont en anglais**, les **mes
 |---|---|---|
 | 400 | Données d'entrée invalides (Bean Validation) | `VALIDATION_ERROR` |
 | 404 | Ressource introuvable | `RESOURCE_NOT_FOUND` |
+| 410 | Aventurier banni (consultation, modification, assignation, nouvelle suppression) | `ADVENTURER_BANNED` |
 | 422 | Règle métier violée | `LEVEL_TOO_LOW`, `QUEST_NOT_AVAILABLE`, `ADVENTURER_ALREADY_BUSY`, `QUEST_NOT_ON_GOING`, `QUEST_UPDATE_FORBIDDEN`, `QUEST_DELETE_FORBIDDEN`, `NAME_ALREADY_TAKEN`, `TITLE_ALREADY_TAKEN` |
 | 500 | Erreur inattendue (message générique) | `INTERNAL_ERROR` |
 
@@ -211,6 +214,7 @@ Le modèle comporte trois entités : `Adventurer`, `Quest` et `Assignment`, cett
 - **Assignation et complétion dans `QuestService`** plutôt que dans un service dédié : les routes sont sous `/api/quests/{id}/...`, ce regroupement suit le découpage de l'API.
 - **Un même DTO pour la création et la modification** (`POST` et `PUT`), les champs étant identiques. La règle « modification interdite si la quête est en cours ou terminée » est une vérification du service, pas une affaire de DTO.
 - **Nom ou titre déjà pris renvoie un 422** (règle métier) plutôt qu'un 400 : ce n'est pas une erreur de format de la donnée.
+- **Suppression douce des aventuriers** : un aventurier supprimé est banni plutôt qu'effacé, pour que les quêtes terminées gardent son nom. Le code **410 Gone** (« a existé, n'existe plus ») distingue un aventurier banni d'un id inconnu (404).
 - **Front** : TypeScript en mode `strict` sans aucun `any`, appels HTTP uniquement dans `src/services` (via un petit wrapper autour de `fetch` qui relance tel quel le corps d'erreur du back, pour afficher son message français), pas de gestion d'état externe (`useState` / `useEffect`), navigation par simple état React sans bibliothèque de routing, chaque appel réseau gère les états chargement, erreur, données et liste vide.
 - **Workflow Git** : une branche par sujet, Pull Request, merge sur `main`, messages au format Conventional Commits.
 - **Intégration continue** : un workflow GitHub Actions compile le back et lance le test de chargement du contexte Spring contre un vrai PostgreSQL 16 lancé comme service du job. Pour lancer les tests en local (`./gradlew test`), la base et `DB_PASSWORD` doivent donc être disponibles.
@@ -228,7 +232,7 @@ Le modèle comporte trois entités : `Adventurer`, `Quest` et `Assignment`, cett
 
 - Pas de jeu de données de démonstration fourni : les aventuriers et les quêtes se créent depuis l'interface ou Swagger.
 - L'interface ne propose la modification et la suppression d'une quête que lorsqu'elle est **disponible**. Le back refuse déjà la modification d'une quête en cours ou terminée ; pour la suppression, une quête terminée reste référencée par son assignation (clé étrangère), et sa suppression échouerait avec une erreur générique 500.
-- L'interface ne propose pas la suppression d'un aventurier (la route et le service du front existent). Pour la même raison de clé étrangère, supprimer un aventurier qui a un historique échouerait avec une erreur générique.
+- Un aventurier banni n'est pas réintégrable depuis l'interface, et son nom ne peut pas être repris par un nouvel aventurier.
 
 ---
 
