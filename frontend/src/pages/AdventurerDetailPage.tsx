@@ -63,7 +63,7 @@ export function AdventurerDetailPage({ adventurerId, onBack }: AdventurerDetailP
 
             {!loading && !error && adventurer && (
                 <>
-                    <h1>{adventurer.name}</h1>
+                    <h2>{adventurer.name}</h2>
                     <p>{adventurer.characterClass}</p>
                     <XpBar level={adventurer.level} xp={adventurer.xp} />
                     <p>Or : {adventurer.gold}</p>
@@ -78,7 +78,7 @@ export function AdventurerDetailPage({ adventurerId, onBack }: AdventurerDetailP
                         />
                     )}
 
-                    <h2>Historique</h2>
+                    <h3>Historique</h3>
                     <AssignmentHistory assignments={history} />
                 </>
             )}

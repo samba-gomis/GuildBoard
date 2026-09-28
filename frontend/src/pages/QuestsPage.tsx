@@ -81,7 +81,6 @@ export function QuestsPage() {
 
     return (
         <section>
-            <h1>Quêtes</h1>
             <QuestFilters
                 status={status}
                 difficulty={difficulty}

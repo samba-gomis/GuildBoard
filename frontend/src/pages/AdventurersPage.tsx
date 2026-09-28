@@ -49,7 +49,6 @@ export function AdventurersPage({ onSelectAdventurer }: AdventurersPageProps) {
 
     return (
         <section>
-            <h1>Aventuriers</h1>
             <button type="button" onClick={() => setShowForm((current) => !current)}>
                 {showForm ? "Annuler" : "Nouvel aventurier"}
             </button>

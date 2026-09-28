@@ -7,7 +7,7 @@ interface QuestCardProps {
 
 const DIFFICULTY_LABELS: Record<DifficultyClass, string> = {
     EASY: "Facile",
-    MEDIUM: "Moyenne",
+    MEDIUM: "Moyen",
     HARD: "Difficile",
     EPIC: "Épique",
 };
